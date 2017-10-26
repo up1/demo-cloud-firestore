@@ -49,7 +49,10 @@ class App extends Component {
   reloadData() {
     let allBeer = []
     const db = firebase.firestore()
-    db.collection("beer").get().then((querySnapshot) => {
+    db.collection("beer")
+      .orderBy('beerName', 'desc')
+      .orderBy('price', 'asc').get()
+      .then((querySnapshot) => {
       querySnapshot.forEach((doc) => {
         console.log(`${doc.id} => ${doc.data().beerName}`)
         allBeer.push(doc)
