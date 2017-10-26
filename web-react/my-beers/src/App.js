@@ -10,10 +10,12 @@ class App extends Component {
       beerName: '',
       alcohol: '',
       price: '',
+      searchWord: '',
       allBeer: []
     }
     this.handleChanged = this.handleChanged.bind(this);
     this.handleNewBeer = this.handleNewBeer.bind(this);
+    this.handleSearchBeer = this.handleSearchBeer.bind(this);
     this.reloadData = this.reloadData.bind(this);
   }
 
@@ -44,6 +46,28 @@ class App extends Component {
       price: ''
     });
     this.reloadData()
+  }
+
+  handleSearchBeer(e) {
+    e.preventDefault()
+    if(this.state.searchWord === '') {
+      this.reloadData()
+      return
+    }
+    let allBeer = []
+    const db = firebase.firestore();
+    db.collection("beer").where("beerName", "==", this.state.searchWord)
+    .get()
+    .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          allBeer.push(doc)
+        })
+
+        this.setState({
+          searchWord: '',
+          allBeer: allBeer
+        })
+    })
   }
 
   reloadData() {
@@ -95,6 +119,11 @@ class App extends Component {
                 <input type="text" name="alcohol" placeholder="% of Alcohol" onChange={this.handleChanged} value={this.state.alcohol} />
                 <input type="text" name="price" placeholder="ราคาเบียร์ (บาท)" onChange={this.handleChanged} value={this.state.price}  />
                 <button>Add new beer</button>
+              </form>
+              <p/>
+              <form onSubmit={this.handleSearchBeer}>
+                <input type="text" name="searchWord" placeholder="คำค้นหา" onChange={this.handleChanged} value={this.state.searchWord} />
+                <button>Search</button>
               </form>
           </section>
           <section className='display-item'>
