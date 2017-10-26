@@ -50,7 +50,7 @@ class App extends Component {
         <div className='container'>
           <section className='add-item'>
               <form onSubmit={this.handleNewBeer}>
-                <input type="text" name="beernName" placeholder="ชื่อเบียร์" onChange={this.handleChanged} />
+                <input type="text" name="beerName" placeholder="ชื่อเบียร์" onChange={this.handleChanged} />
                 <input type="text" name="alcohol" placeholder="% of Alcohol" onChange={this.handleChanged} />
                 <input type="text" name="price" placeholder="ราคาเบียร์ (บาท)" onChange={this.handleChanged} />
                 <button>Add new beer</button>
