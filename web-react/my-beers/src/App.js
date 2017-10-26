@@ -11,6 +11,7 @@ class App extends Component {
       alcohol: '',
       price: '',
       searchWord: '',
+      brewer: '',
       allBeer: []
     }
     this.handleChanged = this.handleChanged.bind(this);
@@ -28,14 +29,35 @@ class App extends Component {
   handleNewBeer(e) {
     e.preventDefault()
     const db = firebase.firestore();
+    //1. Create beer document
     const beer = {
       beerName: this.state.beerName,
       alcohol: this.state.alcohol,
       price: this.state.price
     }
+    const brewer = this.state.brewer
     db.collection("beer").add(beer)
-    .then(function(docRef) {
-        console.log("Document written with ID: ", docRef.id)
+    .then(function(beerDocument) {
+        console.log("Document written with ID: ", beerDocument.id)
+        //2. Add brewer to beer
+        const mockBrewery = [
+          { name: "Stone" },
+          { name: "Thai Local"}
+        ]
+        beerDocument.collection("brewery").add(mockBrewery[brewer])
+        .then(function() {
+            console.log("Add brewery success")
+            this.setState({
+              beerName: '',
+              alcohol: '',
+              price: ''
+            });
+            this.reloadData()
+        })
+        .catch(function(error) {
+            console.error("Error adding brewery: ", error)
+        });
+        this.reloadData()
     })
     .catch(function(error) {
         console.error("Error adding document: ", error)
@@ -54,36 +76,73 @@ class App extends Component {
       this.reloadData()
       return
     }
-    let allBeer = []
+    let _allBeer = []
     const db = firebase.firestore();
     db.collection("beer").where("beerName", "==", this.state.searchWord)
     .get()
     .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          allBeer.push(doc)
+    querySnapshot.forEach((doc) => {
+      console.log(`${doc.id} => ${doc.data().beerName}`)
+      var currentBeer = {
+        id: doc.id,
+        beerName: doc.data().beerName,
+        alcohol: doc.data().alcohol,
+        price: doc.data().price
+      }
+      //Get subcollection
+      db.collection("beer").doc(doc.id).collection("brewery")
+      .get()
+      .then((querySnapshot2) => {
+        querySnapshot2.forEach((brewDoc) => {
+            currentBeer.breweryName = brewDoc.data().name
+            _allBeer.push(currentBeer)
+            this.setState({
+              searchWord: '',
+              allBeer: _allBeer
+            })
         })
-
-        this.setState({
-          searchWord: '',
-          allBeer: allBeer
-        })
+      })
     })
+    this.setState({
+      searchWord: '',
+      allBeer: []
+    })
+  })
   }
 
   reloadData() {
-    let allBeer = []
+    let _allBeer = []
     const db = firebase.firestore()
     db.collection("beer")
-      .orderBy('beerName', 'desc')
+      .orderBy('beerName', 'asc')
       .orderBy('price', 'asc').get()
       .then((querySnapshot) => {
       querySnapshot.forEach((doc) => {
         console.log(`${doc.id} => ${doc.data().beerName}`)
-        allBeer.push(doc)
+        var currentBeer = {
+          id: doc.id,
+          beerName: doc.data().beerName,
+          alcohol: doc.data().alcohol,
+          price: doc.data().price
+        }
+        //Get subcollection
+        db.collection("beer").doc(doc.id).collection("brewery")
+        .get()
+        .then((querySnapshot2) => {
+          querySnapshot2.forEach((brewDoc) => {
+              currentBeer.breweryName = brewDoc.data().name
+              _allBeer.push(currentBeer)
+              this.setState({
+                allBeer: _allBeer
+              })
+          })
+        })
+        this.setState({
+          allBeer: _allBeer
+        })
       })
-
       this.setState({
-        allBeer: allBeer
+        allBeer: _allBeer
       })
     })
   }
@@ -118,6 +177,11 @@ class App extends Component {
                 <input type="text" name="beerName" placeholder="ชื่อเบียร์" onChange={this.handleChanged} value={this.state.beerName} />
                 <input type="text" name="alcohol" placeholder="% of Alcohol" onChange={this.handleChanged} value={this.state.alcohol} />
                 <input type="text" name="price" placeholder="ราคาเบียร์ (บาท)" onChange={this.handleChanged} value={this.state.price}  />
+                <select name="brewer" onChange={this.handleChanged} value={this.state.brewer}>
+                  <option>Choose brewer</option>
+                  <option value="0">Stone</option>
+                  <option value="1">Thai Local</option>
+                </select>
                 <button>Add new beer</button>
               </form>
               <p/>
@@ -131,10 +195,11 @@ class App extends Component {
               <ul>
                 {this.state.allBeer.map((beer) =>
                     <li key={beer.id}>
-                      <h3>{beer.data().beerName}</h3>
+                      <h3>{beer.beerName}</h3>
                       <p>
-                        ปริมาณ alcohol: <strong>{beer.data().alcohol} %</strong><br/>
-                        ราคา: <strong>{beer.data().price} บาท</strong>
+                        ปริมาณ alcohol: <strong>{beer.alcohol} %</strong><br/>
+                        ราคา: <strong>{beer.price} บาท</strong><br/>
+                        ผู้ผลิต: <strong>{beer.breweryName}</strong>
                         <button onClick={() => this.removeBeerBy(beer.id)}>Remove Item</button>
                       </p>
                     </li>
