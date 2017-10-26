@@ -1,4 +1,4 @@
-# Demo Cloud F irestore
+# Demo Cloud Firestore
 Demo for Cloud Firestore at The Firebase CNX meetup 
 
 * Web application with React
