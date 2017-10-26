@@ -52,13 +52,24 @@ class App extends Component {
     db.collection("beer").get().then((querySnapshot) => {
       querySnapshot.forEach((doc) => {
         console.log(`${doc.id} => ${doc.data().beerName}`)
-        allBeer.push(doc.data())
+        allBeer.push(doc)
       })
 
       this.setState({
         allBeer: allBeer
       })
     })
+  }
+
+  removeBeerBy(beerId) {
+    const db = firebase.firestore()
+    db.collection("beer").doc(`${beerId}`).delete()
+      .then(function() {
+          console.log(`${beerId}`)
+        }).catch(function(error) {
+            console.error("Error removing document: ", error);
+        });
+    this.reloadData()
   }
 
   componentDidMount() {
@@ -88,11 +99,11 @@ class App extends Component {
               <ul>
                 {this.state.allBeer.map((beer) =>
                     <li key={beer.id}>
-                      <h3>{beer.beerName}</h3>
+                      <h3>{beer.data().beerName}</h3>
                       <p>
-                        ปริมาณ alcohol: <strong>{beer.alcohol} %</strong><br/>
-                        ราคา: <strong>{beer.price} บาท</strong>
-                        <button onClick={() => this.removeItem(beer.id)}>Remove Item</button>
+                        ปริมาณ alcohol: <strong>{beer.data().alcohol} %</strong><br/>
+                        ราคา: <strong>{beer.data().price} บาท</strong>
+                        <button onClick={() => this.removeBeerBy(beer.id)}>Remove Item</button>
                       </p>
                     </li>
                 )}
