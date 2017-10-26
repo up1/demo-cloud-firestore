@@ -104,7 +104,7 @@ h2 {
 }
 
 li h3 {
-  background-color: #103D5D;
+  background-color: #3498db;
   margin: 0;
   color: #fff;
   font-weight: 300;
@@ -123,7 +123,7 @@ form button {
 button {
   border-radius: 2px;
   min-width: 88px;
-  background-color: #FA6900;
+  background-color: #e74c3c;
   cursor: pointer;
   border: 0;
   min-width: 120px;
